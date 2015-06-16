@@ -1,0 +1,12 @@
+body {
+  background: #000;
+  overflow: hidden;
+}
+
+.dg.ac {
+  display: none;
+}
+
+body.controls .dg.ac {
+  display: block;
+}
