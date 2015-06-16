@@ -22,7 +22,7 @@
 
       this.font = 'bold 12vw "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif';
       this.context.font = this.font;
-      this.text = 'ô';
+      this.text = location.hash ? location.hash.substr(1) : 'ô';
       this.textWidth = (this.context.measureText(this.text)).width;
 
       this.fps = 60;
