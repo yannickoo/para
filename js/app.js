@@ -20,10 +20,13 @@
       this.width = document.documentElement.offsetWidth;
       this.height = window.innerHeight;
 
-      this.font = 'bold 12vw "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif';
-      this.context.font = this.font;
       this.text = location.hash ? location.hash.substr(1) : 'ô';
-      this.textWidth = (this.context.measureText(this.text)).width;
+
+      this.fontSize = 12;
+      this.fontWeight = 'bold';
+      this.fontFamily = '"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif';
+
+      this.fitText();
 
       this.fps = 60;
 
@@ -49,7 +52,7 @@
 
       var text = controls.add(this, 'text');
       text.onChange((function(value) {
-        this.textWidth = (this.context.measureText(this.text)).width;
+        this.fitText();
       }).bind(this));
       controls.add(this, 'fps', 1, 60);
       controls.add(this, 'phaseStep', 0, 1);
@@ -105,16 +108,49 @@
       this.renderScanline();
     },
     renderChannels: function(x1, x2, x3) {
-      this.context.font = this.font;
+      this.setFont();
+      this.context.globalCompositeOperation = this.compOp;
       this.context.fillStyle = 'rgb(255,0,0)';
       this.context.fillText(this.text, x1, this.height / 2);
-
-      this.context.globalCompositeOperation = this.compOp;
-
       this.context.fillStyle = 'rgb(0,255,0)';
       this.context.fillText(this.text, x2, this.height / 2);
       this.context.fillStyle = 'rgb(0,0,255)';
       this.context.fillText(this.text, x3, this.height / 2);
+    },
+    fitText: function() {
+      this.setFont();
+
+      if (this.text.length > 0) {
+        this.fitByIncrement();
+        this.fitByDecrement();
+      }
+
+      this.textWidth = (this.context.measureText(this.text)).width;
+    },
+    fitByIncrement: function() {
+      var minSize = window.innerWidth * 0.12;
+      if (this.measureText() < minSize) {
+        this.fontSize++;
+        this.setFont();
+        this.fitByIncrement();
+      }
+    },
+    fitByDecrement: function() {
+      var maxSize = window.innerWidth * 0.8;
+      if (this.measureText() > maxSize) {
+        this.fontSize--;
+        this.setFont();
+        this.fitByDecrement();
+      }
+    },
+    measureText: function(){
+      return Math.ceil(this.context.measureText(this.text).width);
+    },
+    setFont: function(fontSize, fontFamily, fontWeight) {
+      fontSize = fontSize || this.fontSize;
+      fontFamily = fontFamily || this.fontFamily;
+      fontWeight = fontWeight || this.fontWeight;
+      this.context.font = [fontWeight, fontSize + 'vw', fontFamily].join(' ');
     },
     renderScanline: function() {
       var y = this.height * Math.random() >> 0,
