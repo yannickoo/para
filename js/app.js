@@ -7,26 +7,21 @@
         this.context = this.canvas.getContext('2d');
 
         this.initOptions();
+        this.initControls();
         this.resize();
+
+        this.runSequence();
+
         this.tick();
       }).bind(this), 100);
     },
     initOptions: function() {
-      var gui = new dat.GUI(),
-        current = gui.addFolder('Current'),
-        controls = gui.addFolder('Controls');
-
-
       this.width = document.documentElement.offsetWidth;
       this.height = window.innerHeight;
-
-      this.text = location.hash ? location.hash.substr(1) : 'ô';
 
       this.fontSize = 12;
       this.fontWeight = 'bold';
       this.fontFamily = '"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif';
-
-      this.fitText();
 
       this.fps = 60;
 
@@ -46,22 +41,130 @@
       this.scanlineRange = 40;
       this.scanlineShift = 15;
 
-      current.add(this, 'channel', 0, 2).listen();
-      current.add(this, 'phase', 0, 1).listen();
-      current.add(this, 'amplitude', 0, 5).listen();
+      this.sequence = [{
+        t: 'ô',
+        s: -1
+      }];
+      this.activeStep = false;
+      this.stepTimeout = false;
 
-      var text = controls.add(this, 'text');
-      text.onChange((function(value) {
-        this.fitText();
-      }).bind(this));
-      controls.add(this, 'fps', 1, 60);
-      controls.add(this, 'phaseStep', 0, 1);
-      controls.add(this, 'alphaMin', 0, 1);
-      controls.add(this, 'amplitudeBase', 0, 5);
-      controls.add(this, 'amplitudeRange', 0, 5);
-      controls.add(this, 'glitchAmplitude', 0, 100);
-      controls.add(this, 'glitchThreshold', 0, 1);
-      controls.open();
+      this.controls = {};
+
+      if (location.hash) {
+        var hash = location.hash.substr(1);
+        try {
+          this.sequence = window.JSURL.parse(hash);
+        }
+        catch (e) {
+          if (hash.slice(0, 1) !== '~') {
+            this.sequence = [{
+               t: hash,
+               s: -1
+            }];
+          }
+          else {
+            this.sequence = [{
+              t: '<you failed/>',
+              s: -1
+            }];
+          }
+        }
+      }
+    },
+    initControls: function() {
+      if (typeof this.controls.text === 'object') {
+          this.gui.destroy();
+      }
+
+      this.gui = new dat.GUI();
+
+      this.controls.current = this.gui.addFolder('Current');
+      this.controls.controls = this.gui.addFolder('Controls');
+
+      this.controls.current.add(this, 'channel', 0, 2).listen();
+      this.controls.current.add(this, 'phase', 0, 1).listen();
+      this.controls.current.add(this, 'amplitude', 0, 5).listen();
+
+      this.controls.controls.add(this, 'fps', 1, 60);
+      this.controls.controls.add(this, 'phaseStep', 0, 1);
+      this.controls.controls.add(this, 'alphaMin', 0, 1);
+      this.controls.controls.add(this, 'amplitudeBase', 0, 5);
+      this.controls.controls.add(this, 'amplitudeRange', 0, 5);
+      this.controls.controls.add(this, 'glitchAmplitude', 0, 100);
+      this.controls.controls.add(this, 'glitchThreshold', 0, 1);
+
+      this.controls.text = this.gui.addFolder('Text');
+
+      this.sequence.forEach(function(step, index) {
+        this.addStepControls(index);
+      }.bind(this));
+
+      this.controls.text.add({
+        'add new step': this.addStep.bind(this)
+      }, 'add new step');
+
+      this.controls.text.open();
+    },
+    addStepControls: function (index) {
+      var step = this.sequence[index];
+      var updateStep = function (stepId) {
+        if (this.activeStep === stepId) {
+          this.restartStep(stepId);
+        }
+        this.updateHash();
+      };
+
+      this.controls.text.add(step, 't').onChange(updateStep.bind(this, index));
+      this.controls.text.add(step, 's').onChange(updateStep.bind(this, index));
+      this.controls.text.add({
+        '❌': this.removeStep.bind(this, index)
+      }, '❌');
+    },
+    addStep: function() {
+      this.sequence.push({
+        t: '',
+        s: 1
+      });
+      this.restartStep();
+      this.initControls();
+    },
+    removeStep: function(step) {
+      if (this.sequence.length === 0) {
+        return;
+      }
+      this.sequence.splice(step, 1);
+      this.updateHash();
+      this.restartStep();
+      this.initControls();
+    },
+    updateHash: function() {
+      location.hash = window.JSURL.stringify(this.sequence);
+    },
+    runSequence: function(steps) {
+      var current;
+      var following;
+      steps = steps || this.sequence;
+
+      clearTimeout(this.stepTimeout);
+
+      if (steps.length === 0) {
+        steps = this.sequence;
+      }
+
+      [current, ...following] = steps;
+
+      this.activeStep = this.sequence.length - steps.length;
+      this.changeText(current.t);
+
+      if (current.s > 0) {
+        this.stepTimeout = setTimeout(function () {
+          this.runSequence(following);
+        }.bind(this), current.s * 1000);
+      }
+    },
+    restartStep: function(step) {
+      step = step || this.activeStep;
+      this.runSequence(this.sequence.slice(step));
     },
     tick: function() {
       setTimeout((function() {
@@ -117,7 +220,8 @@
       this.context.fillStyle = 'rgb(0,0,255)';
       this.context.fillText(this.text, x3, this.height / 2);
     },
-    fitText: function() {
+    changeText: function(newText) {
+      this.text = newText;
       this.setFont();
 
       if (this.text.length > 0) {

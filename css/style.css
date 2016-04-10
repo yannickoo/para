@@ -10,3 +10,43 @@ body {
 body.controls .dg.ac {
   display: block;
 }
+
+.dg.main > ul > li:nth-child(3) .dg > ul {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.dg.main > ul > li:nth-child(3) .dg > ul > li {
+  box-sizing: border-box;
+}
+
+.dg.main > ul > li:nth-child(3) .dg > ul > li:first-child,
+.dg.main > ul > li:nth-child(3) .dg > ul > li:last-child {
+  flex: 0 0 100% !important;
+}
+
+.dg.main > ul > li:nth-child(3) .dg > ul > li:nth-child(3n+2) {
+  flex: 1 0 50%;
+}
+.dg.main > ul > li:nth-child(3) .dg > ul > li:nth-child(3n+3) {
+  flex: 0 0 30%;
+}
+.dg.main > ul > li:nth-child(3) .dg > ul > li:nth-child(3n+4) {
+  flex: 0 0 25px;
+}
+
+.dg.main > ul > li:nth-child(3) .dg > ul > li:nth-child(3n+4) div.c {
+  display: none;
+}
+
+.dg.main > ul > li:nth-child(3) .dg > ul > li > div {
+  display: flex;
+}
+
+.dg.main > ul > li:nth-child(3) .dg > ul > li:not(:last-child) > div .property-name {
+  flex: 0 0 1.5em;
+}
+
+.dg.main > ul > li:nth-child(3) .dg > ul > li:not(:last-child) > div div.c {
+  flex: 1 1 auto;
+}
