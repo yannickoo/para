@@ -8,18 +8,16 @@
 
         this.initOptions();
         this.initControls();
-        this.resize();
-
         this.runSequence();
 
+        this.resize();
         this.tick();
+
+        window.onresize = this.resize.bind(this);
       }).bind(this), 100);
     },
     initOptions: function() {
-      this.width = document.documentElement.offsetWidth;
-      this.height = window.innerHeight;
-
-      this.fontSize = 12;
+      this.fontSize = this.baseFontSize = 16;
       this.fontWeight = 'bold';
       this.fontFamily = '"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif';
 
@@ -189,11 +187,11 @@
         x0 *= this.glitchAmplitude;
       }
 
-      x1 = this.width - this.textWidth >> 1;
+      x1 = this.canvas.width - this.textWidth >> 1;
       x2 = x1 + x0;
       x3 = x1 - x0;
 
-      this.context.clearRect(0, 0, this.width, this.height);
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.context.globalAlpha = this.alphaMin + ((1 - this.alphaBase) * Math.random());
 
       switch (this.channel) {
@@ -214,17 +212,18 @@
       this.setFont();
       this.context.globalCompositeOperation = this.compOp;
       this.context.fillStyle = 'rgb(255,0,0)';
-      this.context.fillText(this.text, x1, this.height / 2);
+      this.context.fillText(this.text, x1, this.canvas.height / 2);
       this.context.fillStyle = 'rgb(0,255,0)';
-      this.context.fillText(this.text, x2, this.height / 2);
+      this.context.fillText(this.text, x2, this.canvas.height / 2);
       this.context.fillStyle = 'rgb(0,0,255)';
-      this.context.fillText(this.text, x3, this.height / 2);
+      this.context.fillText(this.text, x3, this.canvas.height / 2);
     },
     changeText: function(newText) {
       this.text = newText;
+      this.fontSize = this.baseFontSize;
       this.setFont();
 
-      if (this.text.length > 0) {
+      if (this.text.length > 1) {
         this.fitByIncrement();
         this.fitByDecrement();
       }
@@ -232,7 +231,7 @@
       this.textWidth = (this.context.measureText(this.text)).width;
     },
     fitByIncrement: function() {
-      var minSize = window.innerWidth * 0.12;
+      var minSize = window.innerWidth * 0.06 * this.text.length;
       if (this.measureText() < minSize) {
         this.fontSize++;
         this.setFont();
@@ -247,7 +246,7 @@
         this.fitByDecrement();
       }
     },
-    measureText: function(){
+    measureText: function() {
       return Math.ceil(this.context.measureText(this.text).width);
     },
     setFont: function(fontSize, fontFamily, fontWeight) {
@@ -257,8 +256,8 @@
       this.context.font = [fontWeight, fontSize + 'vw', fontFamily].join(' ');
     },
     renderScanline: function() {
-      var y = this.height * Math.random() >> 0,
-        o = this.context.getImageData(0, y, this.width, 1),
+      var y = this.canvas.height * Math.random() >> 0,
+        o = this.context.getImageData(0, y, this.canvas.width, 1),
         d = o.data,
         i = d.length,
         s = this.scanlineBase + this.scanlineRange * Math.random() >> 0,
@@ -275,11 +274,11 @@
         this.canvas.width = document.documentElement.offsetWidth;
         this.canvas.height = window.innerHeight;
       }
+      this.changeText(this.text);
     }
   };
 
   glitcher.init();
-  window.onresize = glitcher.resize;
 
   // ESC key for controls!
   document.addEventListener('keyup', function(e) {
