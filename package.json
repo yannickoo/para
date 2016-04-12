@@ -1,0 +1,24 @@
+{
+  "name": "para",
+  "version": "0.0.1",
+  "description": "![Screenshot](images/screenshot.gif?raw=true)",
+  "main": "index.html",
+  "dependencies": {
+    "jsurl": "^0.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yannickoo/para.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/yannickoo/para/issues"
+  },
+  "homepage": "https://github.com/yannickoo/para#readme"
+}
